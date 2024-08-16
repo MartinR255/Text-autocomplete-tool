@@ -1,4 +1,3 @@
-import pandas as pd
 from code.markov_chain import MarkovChain
 from code.parser import Parser
 
@@ -11,4 +10,9 @@ if __name__ == '__main__':
     parser = Parser()
     parsed_data = parser.parse_data(folder_path, column_names)
     
+    markov_chain = MarkovChain(parsed_data)
+    
+
+
+
     

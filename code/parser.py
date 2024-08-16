@@ -38,6 +38,7 @@ class Parser:
         parsed_sentences = []
         for text in dataframe['sentences']:
             sentences = re.split(r'(?<=[.!?]) +', text)
+    
             for sentence in sentences:
                 tokens = word_tokenize(sentence)
                 words = [word.strip().lower() for word in tokens if word.isalpha()]
