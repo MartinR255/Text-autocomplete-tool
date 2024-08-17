@@ -1,5 +1,6 @@
 import os
 import re
+import json
 import pandas as pd
 from nltk.tokenize import sent_tokenize, word_tokenize 
 
@@ -7,7 +8,7 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 class Parser:
 
 
-    def __init__(self) -> None:
+    def __init__(self):
         self._contractions = {
             "n't": " not",
             "'re": " are",
@@ -47,20 +48,33 @@ class Parser:
         return parsed_sentences
 
 
-
     def _parse_csv_file(self, file_path, column_names):
         df = pd.read_csv(file_path, usecols=column_names)
         combined_dataframe = self._combine_columns(df, column_names)
 
         return self._tokenize_text(combined_dataframe)
+    
+
+    def _save_parsed_data(self, data, filename):
+        with open(filename, 'w') as file:
+            json.dump(data, file, indent=4)
 
 
-    def parse_data(self, folder_path, column_names):
+    def load_parsed_data(self, filename):
+        with open(filename, 'r') as file:
+            data = json.load(file)
+        return data
+
+
+    def parse_data(self, folder_path, column_names, save_parsed_data_path=None):
         parsed_data = []
         for file_name in os.listdir(folder_path): 
             if file_name.endswith('.csv'):
                 file_path = os.path.join(folder_path, file_name)
                 
                 parsed_data.extend(self._parse_csv_file(file_path, column_names))
-                
+
+        if save_parsed_data_path:
+            self._save_parsed_data(parsed_data, save_parsed_data_path)
+
         return parsed_data
