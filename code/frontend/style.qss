@@ -1,0 +1,31 @@
+/* styles.qss */
+
+/* Main window background color */
+QMainWindow {
+    background-color: #2E2E2E; /* Dark gray background */
+}
+
+/* QTextEdit styling */
+QTextEdit {
+    background-color: #1E1E1E; /* Darker gray background */
+    color: #D3D3D3; /* Light gray text color */
+    border: 1px solid #008080; /* Teal border */
+    font-size: 14pt;
+    font-family: Arial;
+}
+
+/* QPushButton styling */
+QPushButton {
+    background-color: #2E2E2E; /* Match the background */
+    color: white;
+    font-size: 16px;
+    padding: 10px;
+    margin: 0px 0px 10px 0px; /* Remove side margins, add bottom margin */
+    border-left: 1px solid #008080; /* Teal left border */
+    border-right: 1px solid #008080; /* Teal right border */
+    border-radius: 0px; /* Remove rounded corners */
+}
+
+QPushButton:hover {
+    background-color: #3C3C3C; /* Slightly lighter gray for hover */
+}

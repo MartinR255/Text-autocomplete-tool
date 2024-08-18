@@ -1,5 +1,6 @@
-from code.markov_chain import MarkovChain
-from code.parser import Parser
+from code.backend import MarkovChain
+from code.backend import Parser
+from code.frontend import Window
 
 
 if __name__ == '__main__':
@@ -21,8 +22,10 @@ if __name__ == '__main__':
     parsed_data = parser.load_parsed_data(parsed_data_folder_path)
     
     markov_chain = MarkovChain(parsed_data)
-    
 
 
+    w = Window(700, 450)
+    w.set_markov_chain(markov_chain)
+    w.run()
 
     

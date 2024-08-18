@@ -1,2 +1,4 @@
-from code.markov_chain import MarkovChain
-from code.parser import Parser
+from .backend import MarkovChain, Parser
+from .frontend import Window
+
+__all__ = ['MarkovChain', 'Parser', 'Window']
