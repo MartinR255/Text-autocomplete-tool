@@ -60,11 +60,11 @@ class MarkovChain:
         return []
     
 
-    def get_word(self, state):
+    def get_words(self, state):
         return self._get_top_three_possible_states(state, self._model)
 
 
-    def get_word_with_prefix(self, state):
+    def get_words_with_prefix(self, state):
         return self._get_top_three_possible_states(state, self._prefix_model)
 
     
