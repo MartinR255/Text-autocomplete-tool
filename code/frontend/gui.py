@@ -85,7 +85,7 @@ class Window(QMainWindow):
         self._buttons = [QPushButton('') for _ in range(3)]
         for button in self._buttons:
             button.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-            button.clicked.connect(lambda checked, b=button: self._replace_or_add_word(b.text()))
+            button.clicked.connect(lambda b=button: self._replace_or_add_word(b.text()))
             button_layout.addWidget(button)
 
         self._text_edit = CustomTextEdit(self)
@@ -324,6 +324,33 @@ class Window(QMainWindow):
 
 
     '''
+    Desc: Retrieves the top three possible next states based on the Markov chains
+    Params:
+        number_of_markov_chains: int - The number of Markov chains to consider
+        last_state: list - The last state(s) to use as context
+        use_prefix: bool - Whether to use prefix matching (default: False)
+    Returns: list - Up to three possible next states
+    '''
+    def _get_top_three_possible_states(self, number_of_markov_chains, last_state, use_prefix=False):
+        words = []
+        for i, markov_chain in enumerate(self._markov_chains):
+            look_back_words = -(number_of_markov_chains - i)
+            if use_prefix:
+                top_three_words = markov_chain.get_words_with_prefix(tuple(last_state[look_back_words:]))
+            else:
+                top_three_words = markov_chain.get_words(tuple(last_state[look_back_words:]))
+
+            top_three_states = [val[0] for val in top_three_words]
+            words.extend(top_three_states)
+            words = list(dict.fromkeys(words))
+            
+            if len(words) >= 3:
+                break
+
+        return words[:3]
+
+
+    '''
     Desc: Processes the end of a word in a text
     Params:
         words: list - The list of words in the text
@@ -331,18 +358,10 @@ class Window(QMainWindow):
     '''
     def _process_word_end(self, words):
         if words:
-            self._set_states(words[-len(self._markov_chains):], self._prefix_length, self._word_ending_length)
+            number_of_markov_chains = len(self._markov_chains)
+            self._set_states(words[-number_of_markov_chains:], self._prefix_length, self._word_ending_length)
             
-            words = []
-            for i, markov_chain in enumerate(reversed(self._markov_chains)):
-                top_three_words = markov_chain.get_words(tuple(self._current_state[-(len(self._markov_chains) - i):]))
-                words.extend(top_three_words)
-
-            print(f'current state : {self._current_state}')
-            print(f'end words : {words}')
-            words = words[:3]
-
-            next_states = [val[0] for val in words]
+            next_states = self._get_top_three_possible_states(number_of_markov_chains, self._current_state)
             self._update_buttons(prefix='', prefix_endings=next_states)
     
 
@@ -353,26 +372,13 @@ class Window(QMainWindow):
     Returns: str - The new text with the processed word
     '''
     def _process_word(self, words):
-        last_word = words[-1]
-        last_words = words[-len(self._markov_chains):]
-        # prefix_words = self._markov_chain.get_words_with_prefix(last_word)
+        number_of_markov_chains = len(self._markov_chains)
+        last_words = words[-number_of_markov_chains:]
+        next_prefix_states = self._get_top_three_possible_states(number_of_markov_chains, last_words, use_prefix=True)
 
-
-        
-
-
-        prefix_words = []
-        for i, markov_chain in enumerate(reversed(self._markov_chains)):
-            top_three_words = markov_chain.get_words_with_prefix(tuple(last_words[-(len(self._markov_chains) - i):]))
-            prefix_words.extend(top_three_words)
-
-        print(f'last words : {last_words}')
-        print(f'prefix words : {prefix_words}')
-
-        prefix_words = prefix_words[:3]
-        next_prefix_states = [val[0] for val in prefix_words]
         word_ending = next_prefix_states[0] if next_prefix_states else ''
 
+        last_word = words[-1]
         self._update_buttons(last_word, next_prefix_states)
         self._set_states(self._current_state, len(last_word), len(word_ending))
 

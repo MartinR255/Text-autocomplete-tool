@@ -24,8 +24,9 @@ def main():
     '''
     parsed_data = parser.load_parsed_data(parsed_data_folder_path)
     
+    # create markov chains in reverse order to get the most complex model first
     max_nth_order = 3
-    markov_chains = [MarkovChain(parsed_data, i) for i in range(1, max_nth_order + 1)]
+    markov_chains = [MarkovChain(parsed_data, i) for i in range(max_nth_order, 0, -1)]
 
 
     app = QApplication(sys.argv)

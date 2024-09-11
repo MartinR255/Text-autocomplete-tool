@@ -5,8 +5,6 @@ class MarkovChain:
     def __init__(self, data, n):
         self._model = {}
         self._prefix_model = {}
-
-        # data = [['toto', 'je', 'auto', 'a', 'veta', 's', 'nejakymi', 'slovami'], ['a', 'toto', 'je', 'a', 'vyzera', 'ako', 'auto'], ['jednoduchy', 'markov', 'model', 's', 'nejakymi', 'textom']]
         self._build_model_of_nth_order(data, n)
 
 
@@ -36,7 +34,6 @@ class MarkovChain:
         for sentence in data:
             if len(sentence) == 0 or len(sentence) < n: continue
 
-            # self._build_prefix_model(sentence[0], n)
             for i in range(len(sentence) - n):
                 current_state = sentence[i:i+n]
                 next_state = sentence[i+n]
@@ -49,23 +46,6 @@ class MarkovChain:
         self._prefix_model = self._compute_transitions_probabilities(self._prefix_model)
 
 
-    # def _build_model(self, data):
-    #     for sentence in data:
-    #         if len(sentence) == 0: continue
-
-    #         self._build_prefix_model(sentence[0])
-
-    #         for word_index in range(len(sentence) - 1):
-    #             current_state = sentence[word_index]
-    #             next_state = sentence[word_index + 1]
-    #             self._insert_into_model(self._model, current_state, next_state)
-
-    #             self._build_prefix_model(next_state)
-                
-    #     self._model = self._compute_transitions_probabilities(self._model)
-    #     self._prefix_model = self._compute_transitions_probabilities(self._prefix_model)
-         
-    
     def _compute_transitions_probabilities(self, model):
         for current_state, transition_states in model.items():
             total_transitions = sum(transition_states.values()) 
