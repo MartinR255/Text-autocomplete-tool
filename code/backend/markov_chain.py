@@ -2,11 +2,12 @@ import operator
 
 class MarkovChain:
 
-    def __init__(self, data):
+    def __init__(self, data, n):
         self._model = {}
         self._prefix_model = {}
 
-        self._build_model(data)
+        # data = [['toto', 'je', 'auto', 'a', 'veta', 's', 'nejakymi', 'slovami'], ['a', 'toto', 'je', 'a', 'vyzera', 'ako', 'auto'], ['jednoduchy', 'markov', 'model', 's', 'nejakymi', 'textom']]
+        self._build_model_of_nth_order(data, n)
 
 
     def _insert_into_model(self, model, current_state, next_state):
@@ -18,34 +19,55 @@ class MarkovChain:
                 model[current_state][next_state] += 1        
 
 
-    def _build_prefix_model(self, word):
-        for i in range(len(word)):
-            prefix_state = word[:i]
-            next_state = word[i:]
+    def _build_prefix_model(self, words, n):
+
+        last_word = words[-1]
+        for i in range(1,len(last_word)):
+        
+            q = words[:n-1]
+            q.append(last_word[:i])
+            prefix_state = tuple(q)
+            next_state = last_word[i:]
 
             self._insert_into_model(self._prefix_model, prefix_state, next_state)
 
 
-    def _build_model(self, data):
+    def _build_model_of_nth_order(self, data, n):
         for sentence in data:
-            if len(sentence) == 0: continue
+            if len(sentence) == 0 or len(sentence) < n: continue
 
-            self._build_prefix_model(sentence[0])
+            # self._build_prefix_model(sentence[0], n)
+            for i in range(len(sentence) - n):
+                current_state = sentence[i:i+n]
+                next_state = sentence[i+n]
+                self._insert_into_model(self._model, tuple(current_state), next_state)
 
-            for word_index in range(len(sentence) - 1):
-                current_state = sentence[word_index]
-                next_state = sentence[word_index + 1]
-                self._insert_into_model(self._model, current_state, next_state)
+                current_state = sentence[i:i+n]
+                self._build_prefix_model(current_state, n)
 
-                self._build_prefix_model(next_state)
-                
         self._model = self._compute_transitions_probabilities(self._model)
         self._prefix_model = self._compute_transitions_probabilities(self._prefix_model)
+
+
+    # def _build_model(self, data):
+    #     for sentence in data:
+    #         if len(sentence) == 0: continue
+
+    #         self._build_prefix_model(sentence[0])
+
+    #         for word_index in range(len(sentence) - 1):
+    #             current_state = sentence[word_index]
+    #             next_state = sentence[word_index + 1]
+    #             self._insert_into_model(self._model, current_state, next_state)
+
+    #             self._build_prefix_model(next_state)
+                
+    #     self._model = self._compute_transitions_probabilities(self._model)
+    #     self._prefix_model = self._compute_transitions_probabilities(self._prefix_model)
          
     
     def _compute_transitions_probabilities(self, model):
         for current_state, transition_states in model.items():
-            # total transition form state
             total_transitions = sum(transition_states.values()) 
             for destination_state, transition_count  in transition_states.items():
                 model[current_state][destination_state] = transition_count / total_transitions
@@ -54,7 +76,7 @@ class MarkovChain:
     
 
     def _get_top_three_possible_states(self, state, model):
-        state_lower = state.lower()
+        state_lower = tuple(s.lower() for s in state)
         if state_lower in model:
             return sorted(model[state_lower].items(), key=operator.itemgetter(1), reverse=True)[:3]
         return []
@@ -67,4 +89,4 @@ class MarkovChain:
     def get_words_with_prefix(self, state):
         return self._get_top_three_possible_states(state, self._prefix_model)
 
-    
+

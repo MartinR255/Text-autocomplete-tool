@@ -6,7 +6,6 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..
 sys.path.insert(0, project_root)
 
 from PyQt6.QtWidgets import (
-    QApplication,
     QMainWindow,
     QTextEdit,
     QPushButton,
@@ -39,7 +38,7 @@ class Window(QMainWindow):
     Returns: None
     '''
     def _initialize_attributes(self):
-        self._markov_chain = None
+        self._markov_chains = None
         self._current_state = ''
         self._prefix_length = 0
         self._word_ending_length = 0
@@ -101,8 +100,8 @@ class Window(QMainWindow):
         markov_chain: MarkovChain - The Markov chain object
     Returns: None
     '''
-    def set_markov_chain(self, markov_chain):
-        self._markov_chain = markov_chain
+    def set_markov_chains(self, markov_chains):
+        self._markov_chains = markov_chains
 
 
     '''
@@ -332,9 +331,18 @@ class Window(QMainWindow):
     '''
     def _process_word_end(self, words):
         if words:
-            self._set_states(words[-1], self._prefix_length, self._word_ending_length)
-            full_words = self._markov_chain.get_words(self._current_state)
-            next_states = [val[0] for val in full_words]
+            self._set_states(words[-len(self._markov_chains):], self._prefix_length, self._word_ending_length)
+            
+            words = []
+            for i, markov_chain in enumerate(reversed(self._markov_chains)):
+                top_three_words = markov_chain.get_words(tuple(self._current_state[-(len(self._markov_chains) - i):]))
+                words.extend(top_three_words)
+
+            print(f'current state : {self._current_state}')
+            print(f'end words : {words}')
+            words = words[:3]
+
+            next_states = [val[0] for val in words]
             self._update_buttons(prefix='', prefix_endings=next_states)
     
 
@@ -346,7 +354,22 @@ class Window(QMainWindow):
     '''
     def _process_word(self, words):
         last_word = words[-1]
-        prefix_words = self._markov_chain.get_words_with_prefix(last_word)
+        last_words = words[-len(self._markov_chains):]
+        # prefix_words = self._markov_chain.get_words_with_prefix(last_word)
+
+
+        
+
+
+        prefix_words = []
+        for i, markov_chain in enumerate(reversed(self._markov_chains)):
+            top_three_words = markov_chain.get_words_with_prefix(tuple(last_words[-(len(self._markov_chains) - i):]))
+            prefix_words.extend(top_three_words)
+
+        print(f'last words : {last_words}')
+        print(f'prefix words : {prefix_words}')
+
+        prefix_words = prefix_words[:3]
         next_prefix_states = [val[0] for val in prefix_words]
         word_ending = next_prefix_states[0] if next_prefix_states else ''
 

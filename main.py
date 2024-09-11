@@ -24,22 +24,18 @@ def main():
     '''
     parsed_data = parser.load_parsed_data(parsed_data_folder_path)
     
-    markov_chain = MarkovChain(parsed_data)
+    max_nth_order = 3
+    markov_chains = [MarkovChain(parsed_data, i) for i in range(1, max_nth_order + 1)]
+
 
     app = QApplication(sys.argv)
-
-    # Load and apply the stylesheet 
-    style_file = QFile("code/frontend/style.qss")
-    if style_file.open(QFile.OpenModeFlag.ReadOnly | QFile.OpenModeFlag.Text):
-        stream = QTextStream(style_file)
-        app.setStyleSheet(stream.readAll())
-
     window = Window(800, 600)
 
-    window.set_markov_chain(markov_chain)
+    window.set_markov_chains(markov_chains)
     window.show()
 
     sys.exit(app.exec())
+
 
 if __name__ == "__main__":
     main()
