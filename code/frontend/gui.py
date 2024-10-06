@@ -18,8 +18,6 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QTextCharFormat, QColor, QTextCursor, QPalette
 from PyQt6.QtCore import Qt
 
-from code.backend import MarkovChain
-from code.backend import Parser
 
 
 class Window(QMainWindow):
@@ -85,7 +83,7 @@ class Window(QMainWindow):
         self._buttons = [QPushButton('') for _ in range(3)]
         for button in self._buttons:
             button.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-            button.clicked.connect(lambda b=button: self._replace_or_add_word(b.text()))
+            button.clicked.connect(lambda _, btn=button: self._replace_or_add_word(btn.text()))
             button_layout.addWidget(button)
 
         self._text_edit = CustomTextEdit(self)
@@ -419,8 +417,6 @@ class Window(QMainWindow):
 
         text_until_cursor = text_edit_plaint_text[:cursor_pos]
         text_after_cursor = text_edit_plaint_text[cursor_pos:]
-        
-        words = text_until_cursor.split()
 
         self._clear_buttons_text()
 
@@ -449,9 +445,13 @@ class Window(QMainWindow):
 
         new_cursor_pos = len(text_until_word_in_crusor_range) + len(new_word)
         new_text = text_until_word_in_crusor_range + new_word + text_after_word_in_crusor_range
+        self._set_states(current_state='', prefix_length=0, word_ending_length=0)
         self._update_text(new_text, new_cursor_pos)
-       
 
+        # Set focus back to the text edit widget
+        self._text_edit.setFocus()
+        
+       
 
 class CustomTextEdit(QTextEdit):
    

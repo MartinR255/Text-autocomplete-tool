@@ -3,22 +3,36 @@ import operator
 class MarkovChain:
 
     def __init__(self, data, n):
-        self._model = {}
-        self._prefix_model = {}
-        self._build_model_of_nth_order(data, n)
+        self._chain = {}
+        self._prefix_chain = {}
+        self._build_chain_of_nth_order(data, n)
 
 
-    def _insert_into_model(self, model, current_state, next_state):
-            if current_state not in model:
-                model[current_state] = { next_state : 1 }
-            elif next_state not in model[current_state]:
-                model[current_state][next_state] = 1
+    '''
+    Desc: Inserts a state transition into the chain
+    Params:
+        chain: dict - The chain to insert into
+        current_state: tuple - The current state
+        next_state: str - The next state
+    Returns: None
+    '''
+    def _insert_into_chain(self, chain, current_state, next_state):
+            if current_state not in chain:
+                chain[current_state] = { next_state : 1 }
+            elif next_state not in chain[current_state]:
+                chain[current_state][next_state] = 1
             else:
-                model[current_state][next_state] += 1        
+                chain[current_state][next_state] += 1        
 
 
-    def _build_prefix_model(self, words, n):
-
+    '''
+    Desc: Builds the prefix chain for word completion
+    Params:
+        words: list - The list of words to build the prefix chain from
+        n: int - The order of the Markov chain
+    Returns: None
+    '''
+    def _build_prefix_chain(self, words, n):
         last_word = words[-1]
         for i in range(1,len(last_word)):
         
@@ -27,46 +41,78 @@ class MarkovChain:
             prefix_state = tuple(q)
             next_state = last_word[i:]
 
-            self._insert_into_model(self._prefix_model, prefix_state, next_state)
+            self._insert_into_chain(self._prefix_chain, prefix_state, next_state)
 
 
-    def _build_model_of_nth_order(self, data, n):
+    '''
+    Desc: Builds the nth order Markov chain
+    Params:
+        data: list - The input data to build the chain from
+        n: int - The order of the Markov chain
+    Returns: None
+    '''
+    def _build_chain_of_nth_order(self, data, n):
         for sentence in data:
             if len(sentence) == 0 or len(sentence) < n: continue
 
             for i in range(len(sentence) - n):
                 current_state = sentence[i:i+n]
                 next_state = sentence[i+n]
-                self._insert_into_model(self._model, tuple(current_state), next_state)
+                self._insert_into_chain(self._chain, tuple(current_state), next_state)
 
                 current_state = sentence[i:i+n]
-                self._build_prefix_model(current_state, n)
+                self._build_prefix_chain(current_state, n)
 
-        self._model = self._compute_transitions_probabilities(self._model)
-        self._prefix_model = self._compute_transitions_probabilities(self._prefix_model)
+        self._chain = self._compute_transitions_probabilities(self._chain)
+        self._prefix_chain = self._compute_transitions_probabilities(self._prefix_chain)
 
 
-    def _compute_transitions_probabilities(self, model):
-        for current_state, transition_states in model.items():
+    '''
+    Desc: Computes transition probabilities for the Markov chain
+    Params:
+        chain: dict - The chain to compute probabilities for
+    Returns: dict - The Markov chain with computed probabilities
+    '''
+    def _compute_transitions_probabilities(self, chain):
+        for current_state, transition_states in chain.items():
             total_transitions = sum(transition_states.values()) 
             for destination_state, transition_count  in transition_states.items():
-                model[current_state][destination_state] = transition_count / total_transitions
+                chain[current_state][destination_state] = transition_count / total_transitions
 
-        return model
+        return chain
     
 
-    def _get_top_three_possible_states(self, state, model):
+    '''
+    Desc: Gets the top three possible states from the chain
+    Params:
+        state: tuple - The current state
+        chain: dict - The Markov chain to get states from
+    Returns: list - Top three possible states with their probabilities
+    '''
+    def _get_top_three_possible_states(self, state, chain):
         state_lower = tuple(s.lower() for s in state)
-        if state_lower in model:
-            return sorted(model[state_lower].items(), key=operator.itemgetter(1), reverse=True)[:3]
+        if state_lower in chain:
+            return sorted(chain[state_lower].items(), key=operator.itemgetter(1), reverse=True)[:3]
         return []
     
 
+    '''
+    Desc: Gets the top three possible next words
+    Params:
+        state: tuple - The current state
+    Returns: list - Top three possible next words with their probabilities
+    '''
     def get_words(self, state):
-        return self._get_top_three_possible_states(state, self._model)
+        return self._get_top_three_possible_states(state, self._chain)
 
 
+    '''
+    Desc: Gets the top three possible word completions with given prefix
+    Params:
+        state: tuple - The current state 
+    Returns: list - Top three possible word completions with their probabilities
+    '''
     def get_words_with_prefix(self, state):
-        return self._get_top_three_possible_states(state, self._prefix_model)
+        return self._get_top_three_possible_states(state, self._prefix_chain)
 
 
