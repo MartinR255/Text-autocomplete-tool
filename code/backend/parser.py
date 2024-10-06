@@ -2,11 +2,10 @@ import os
 import re
 import json
 import pandas as pd
-from nltk.tokenize import sent_tokenize, word_tokenize 
+from nltk.tokenize import word_tokenize 
 
 
 class Parser:
-
 
     def __init__(self):
         self._contractions = {
@@ -21,6 +20,13 @@ class Parser:
         }
 
 
+    '''
+    Desc: Combines specified columns, applies contractions, and removes non-alphabetic characters
+    Params:
+        df: pandas.DataFrame - The input dataframe
+        column_names: list - Names of columns to combine
+    Returns: pandas.DataFrame - Combined dataframe with processed text
+    '''
     def _combine_columns(self, df, column_names):
         column_df_to_concat = []
         for name in column_names:
@@ -35,6 +41,12 @@ class Parser:
         return combined_dataframe
 
 
+    '''
+    Desc: Tokenizes the text in the dataframe into words
+    Params:
+        dataframe: pandas.DataFrame - The input dataframe
+    Returns: list - List of tokenized sentences
+    '''
     def _tokenize_text(self, dataframe):
         parsed_sentences = []
         for text in dataframe['sentences']:
@@ -48,6 +60,13 @@ class Parser:
         return parsed_sentences
 
 
+    '''
+    Desc: Parses a CSV file, combines specified columns, and tokenizes the text
+    Params:
+        file_path: str - Path to the CSV file
+        column_names: list - Names of columns to parse
+    Returns: list - List of tokenized sentences from the CSV file
+    '''
     def _parse_csv_file(self, file_path, column_names):
         df = pd.read_csv(file_path, usecols=column_names)
         combined_dataframe = self._combine_columns(df, column_names)
@@ -55,17 +74,38 @@ class Parser:
         return self._tokenize_text(combined_dataframe)
     
 
-    def _save_parsed_data(self, data, filename):
-        with open(filename, 'w') as file:
+    '''
+    Desc: Saves parsed data to a JSON file
+    Params:
+        data: list - The parsed data to save
+        file_path: str - File path to file to save the data
+    Returns: None
+    '''
+    def _save_parsed_data(self, data, file_path):
+        with open(file_path, 'w') as file:
             json.dump(data, file, indent=4)
 
 
-    def load_parsed_data(self, filename):
-        with open(filename, 'r') as file:
+    '''
+    Desc: Loads parsed data from a JSON file
+    Params:
+        file_path: str - File path to load the data from
+    Returns: list - The loaded parsed data
+    '''
+    def load_parsed_data(self, file_path):
+        with open(file_path, 'r') as file:
             data = json.load(file)
         return data
 
 
+    '''
+    Desc: Parses all CSV files in a folder and optionally saves the parsed data
+    Params:
+        folder_path: str - Path to the folder containing CSV files
+        column_names: list - Names of columns to parse
+        save_parsed_data_path: str - Path to save the parsed data (optional)
+    Returns: list - The parsed data from all CSV files
+    '''
     def parse_data(self, folder_path, column_names, save_parsed_data_path=None):
         parsed_data = []
         for file_name in os.listdir(folder_path): 

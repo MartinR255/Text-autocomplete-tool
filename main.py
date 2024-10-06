@@ -1,5 +1,4 @@
 from PyQt6.QtWidgets import QApplication
-from PyQt6.QtCore import QFile, QTextStream
 
 from code.backend import MarkovChain
 from code.backend import Parser
